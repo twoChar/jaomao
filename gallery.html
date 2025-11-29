@@ -1,0 +1,735 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Memories | Party Edition</title>
+
+    <!-- React & ReactDOM -->
+    <script
+      crossorigin
+      src="https://unpkg.com/react@18/umd/react.development.js"
+    ></script>
+    <script
+      crossorigin
+      src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"
+    ></script>
+
+    <!-- Babel for JSX -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Framer Motion -->
+    <script src="https://unpkg.com/framer-motion@10.16.4/dist/framer-motion.js"></script>
+
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <!-- Google Fonts -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Outfit:wght@200;300;400;500&family=Playfair+Display:ital@0;1&display=swap"
+      rel="stylesheet"
+    />
+
+    <style>
+      body {
+        font-family: "Outfit", sans-serif;
+        background-color: #050505; /* Deep luxury black */
+        color: #ffffff;
+        overflow-x: hidden;
+        cursor: none;
+      }
+
+      /* Hide Scrollbar */
+      ::-webkit-scrollbar {
+        width: 0px;
+        background: transparent;
+      }
+
+      .custom-cursor {
+        pointer-events: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background-color: white;
+        transform: translate(-50%, -50%);
+        z-index: 9999;
+        mix-blend-mode: exclusion;
+        transition: width 0.2s, height 0.2s;
+      }
+
+      .custom-cursor-follower {
+        pointer-events: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        transform: translate(-50%, -50%);
+        z-index: 9998;
+        transition: all 0.1s ease-out;
+      }
+
+      .grain-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        z-index: 9000;
+        opacity: 0.04;
+        background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+      }
+
+      .serif {
+        font-family: "Playfair Display", serif;
+      }
+    </style>
+
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              dark: {
+                bg: "#050505",
+                card: "#121212",
+                border: "#2A2A2A",
+              },
+              gold: {
+                500: "#D4AF37",
+                400: "#F4CF57",
+              },
+            },
+            backgroundImage: {
+              "gradient-radial": "radial-gradient(var(--tw-gradient-stops))",
+            },
+          },
+        },
+      };
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+      const {
+        useState,
+        useEffect,
+        useRef,
+        useMemo,
+        createContext,
+        useContext,
+      } = React;
+      const {
+        motion,
+        useScroll,
+        useTransform,
+        useSpring,
+        useMotionValue,
+        useVelocity,
+        useAnimationFrame,
+      } = window.Motion;
+
+      // --- Data Configuration ---
+      const BASE_PATH = "./"; // Root directory
+
+      // Extracted File List
+      const RAW_FILE_LIST = [
+        // Special Photos (Added explicitly for logic, also in list)
+        "Screenshot 2025-08-27 at 20.27.05.png",
+        "hbd24.PNG",
+
+        // Videos
+        "a1.MP4",
+        "a2.MP4",
+        "a3.MP4",
+        "a4.MOV",
+        "hbd25.MOV",
+
+        // Images (PNG / JPG / JPEG only)
+        "h1.png",
+        "h2.png",
+        "h3.jpg",
+        "h4.jpg",
+        "h5.png",
+        "h6.png",
+        "h7.jpg",
+        "h8.PNG",
+        "h9.PNG",
+
+        "hbd1.jpg",
+        "hbd2.png",
+        "hbd3.JPG",
+        "hbd4.JPG",
+        "hbd5.JPG",
+        "hbd6.jpg",
+        "hbd7.JPG",
+        "hbd8.JPG",
+        "hbd9.jpg",
+
+        "hbd11.jpg",
+        "hbd13.jpg",
+        "hbd14.jpg",
+        "hbd15.jpg",
+        "hbd17.jpg",
+        "hbd18.jpg",
+        "hbd19.jpg",
+        "hbd20.jpg",
+        "hbd21.jpg",
+        "hbd22.jpg",
+        "hbd23.jpg",
+
+        // hbd24.PNG is already added at top, but keeping logic robust
+
+        "hbd26.jpg",
+        "hbd27.jpg",
+        "hbd28.jpg",
+        "hbd29.jpg",
+        "hbd30.jpg",
+        "hbd31.jpg",
+        "hbd32.jpg",
+        "hbd33.jpg",
+        "hbd34.jpg",
+        "hbd35.jpg",
+        "hbd36.jpg",
+        "hbd37.jpg",
+        "hbd38.jpg",
+        "hbd39.jpg",
+        "hbd40.jpg",
+        "hbd44.jpg",
+        "hbd45.jpg",
+        "hbd46.jpg",
+        "hbd47.jpg",
+        "hbd48.jpg",
+        "hbd49.jpg",
+        "hbd50.jpg",
+        "hbd51.jpg",
+        "hbd52.jpg",
+        "hbd53.jpg",
+        "hbd54.jpg",
+        "hbd55.jpg",
+        "hbd56.jpg",
+        "hbd57.jpg",
+        "hbd58.jpg",
+        "hbd59.jpg",
+
+        // Camera uploads
+        "IMG_0256.jpg",
+        "IMG_0654.jpg",
+        "IMG_0662.jpg",
+        "IMG_0757.jpg",
+        "IMG_0864.jpg",
+        "IMG_1102 (1).jpg",
+        "IMG_1391.JPG",
+        "IMG_2556.jpg",
+        "IMG_2559.jpg",
+        "IMG_3383.JPG",
+        "IMG_3384.JPG",
+        "IMG_3385.JPG",
+        "IMG_4609.JPG",
+        "IMG_4610.JPG",
+        "IMG_4611.JPG",
+        "IMG_4613.JPG",
+        "IMG_4614.JPG",
+        "IMG_4615.JPG",
+        "IMG_4617.JPG",
+        "IMG_4618.JPG",
+        "IMG_4619.JPG",
+        "IMG_4621 2.JPG",
+        "IMG_4621.JPG",
+        "IMG_4622.JPG",
+        "IMG_4623.JPG",
+        "IMG_4624.JPG",
+        "IMG_4625.JPG",
+        "IMG_4626.JPG",
+        "IMG_4627.JPG",
+        "IMG_4629.JPG",
+        "IMG_4630.JPG",
+        "IMG_4631.JPG",
+        "IMG_4632.JPG",
+      ];
+
+      // --- Context for Hiding Broken Files (Default: false, button removed but logic kept) ---
+      const GalleryContext = createContext({
+        hideBroken: false, // Set to false to show everything by default
+        setHideBroken: () => {},
+      });
+
+      // Fisher-Yates Shuffle Algorithm
+      const shuffleArray = (array) => {
+        let currentIndex = array.length,
+          randomIndex;
+        while (currentIndex != 0) {
+          randomIndex = Math.floor(Math.random() * currentIndex);
+          currentIndex--;
+          [array[currentIndex], array[randomIndex]] = [
+            array[randomIndex],
+            array[currentIndex],
+          ];
+        }
+        return array;
+      };
+
+      const generateMediaItems = () => {
+        // Unique-ify list to prevent duplicates
+        const uniqueList = [...new Set(RAW_FILE_LIST)];
+        // Shuffle the list before mapping
+        const shuffledList = shuffleArray(uniqueList);
+
+        return shuffledList.map((filename, i) => {
+          const lowerName = filename.toLowerCase();
+          const isVideo =
+            lowerName.endsWith(".mp4") || lowerName.endsWith(".mov");
+
+          return {
+            id: i,
+            type: isVideo ? "video" : "image",
+            src: `${BASE_PATH}${filename}`,
+            filename: filename,
+            // Removed fixed spans, handled by CSS columns now
+            delay: Math.random() * 0.3,
+            rotationOffset: Math.random() * 2 - 1,
+            swayDuration: 4 + Math.random() * 5,
+          };
+        });
+      };
+
+      // Generate items once per page load
+      const ITEMS = generateMediaItems();
+
+      // --- Components ---
+
+      const CustomCursor = () => {
+        const cursorRef = useRef(null);
+        const followerRef = useRef(null);
+
+        useEffect(() => {
+          const moveCursor = (e) => {
+            if (cursorRef.current && followerRef.current) {
+              cursorRef.current.style.left = `${e.clientX}px`;
+              cursorRef.current.style.top = `${e.clientY}px`;
+
+              setTimeout(() => {
+                if (followerRef.current) {
+                  followerRef.current.style.left = `${e.clientX}px`;
+                  followerRef.current.style.top = `${e.clientY}px`;
+                }
+              }, 50);
+            }
+          };
+          window.addEventListener("mousemove", moveCursor);
+          return () => window.removeEventListener("mousemove", moveCursor);
+        }, []);
+
+        return (
+          <>
+            <div ref={cursorRef} className="custom-cursor hidden md:block" />
+            <div
+              ref={followerRef}
+              className="custom-cursor-follower hidden md:block"
+            />
+          </>
+        );
+      };
+
+      // Infinite Horizontal Marquee Component
+      const InfiniteMarquee = ({ items, direction = 1, speed = 0.5 }) => {
+        const { scrollY } = useScroll();
+        const scrollVelocity = useVelocity(scrollY);
+        const baseX = useMotionValue(0);
+
+        useAnimationFrame((t, delta) => {
+          let moveBy = direction * speed * (delta / 1000) * 100; // Base speed
+          const velocityFactor = scrollVelocity.get() * 0.01; // Reduced velocity impact
+          if (velocityFactor !== 0) {
+            moveBy += velocityFactor * direction;
+          }
+          baseX.set(baseX.get() + moveBy);
+        });
+
+        const x = useTransform(
+          baseX,
+          (v) => `${(v % 100) - (direction > 0 ? 100 : 0)}%`
+        );
+        const skewVelocity = useSpring(scrollVelocity, {
+          stiffness: 100,
+          damping: 30,
+        });
+        const skew = useTransform(skewVelocity, [-1000, 1000], [-5, 5]);
+
+        return (
+          <div className="w-full overflow-hidden flex py-4 relative z-10">
+            <motion.div className="flex gap-6 w-max" style={{ x, skewX: skew }}>
+              {[...items, ...items, ...items, ...items].map((item, i) => (
+                <MarqueeItem key={i} item={item} />
+              ))}
+            </motion.div>
+          </div>
+        );
+      };
+
+      const MarqueeItem = ({ item }) => {
+        const { hideBroken } = useContext(GalleryContext);
+        const [hasError, setHasError] = useState(false);
+
+        if (hideBroken && hasError) return null;
+
+        return (
+          <motion.div
+            className="relative w-[300px] h-[200px] md:w-[450px] md:h-[300px] flex-shrink-0 rounded-lg overflow-hidden border border-white/5 bg-black"
+            whileHover={{
+              scale: 1.05,
+              zIndex: 50,
+              boxShadow: "0 0 30px rgba(255,255,255,0.1)",
+            }}
+          >
+            {item.type === "video" ? (
+              <video
+                src={item.src}
+                className="w-full h-full object-contain"
+                autoPlay
+                loop
+                muted
+                playsInline
+                onError={() => setHasError(true)}
+              />
+            ) : (
+              <img
+                src={item.src}
+                className="w-full h-full object-contain"
+                alt={item.filename}
+                loading="lazy"
+                onError={(e) => {
+                  setHasError(true);
+                  e.target.style.display = "none";
+                  const isHeic = item.filename.toLowerCase().endsWith(".heic");
+                  e.target.parentElement.innerHTML += `
+                                                <div class="absolute inset-0 flex flex-col items-center justify-center text-[10px] text-white/40 p-2 text-center bg-[#111] border border-white/5">
+                                                    <span class="text-red-400 mb-1">✕</span>
+                                                    ${
+                                                      isHeic
+                                                        ? "HEIC Not Supported<br/>Convert to JPG"
+                                                        : `File Not Found<br/>${item.filename}`
+                                                    }
+                                                </div>`;
+                }}
+              />
+            )}
+          </motion.div>
+        );
+      };
+
+      const MediaItem = ({ item, isSpecial }) => {
+        const { hideBroken } = useContext(GalleryContext);
+        const [hasError, setHasError] = useState(false);
+
+        // Continuous swaying animation
+        const swayVariants = {
+          sway: {
+            rotate: [
+              item.rotationOffset - 1,
+              item.rotationOffset + 1,
+              item.rotationOffset - 1,
+            ],
+            transition: {
+              duration: item.swayDuration,
+              repeat: Infinity,
+              ease: "easeInOut",
+            },
+          },
+        };
+
+        if (hideBroken && hasError) return null;
+
+        return (
+          <motion.div
+            className={`relative mb-6 break-inside-avoid ${
+              isSpecial ? "z-20 w-full" : ""
+            }`}
+            initial={{ opacity: 0, y: 50 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "100px" }}
+            transition={{ duration: 0.8, delay: 0.1 }}
+          >
+            <motion.div
+              className={`w-full rounded-xl overflow-hidden bg-dark-card border shadow-lg relative ${
+                isSpecial
+                  ? "border-gold-500/50 shadow-gold-500/20"
+                  : "border-white/10"
+              }`}
+              variants={isSpecial ? {} : swayVariants}
+              animate={isSpecial ? {} : "sway"}
+              whileHover={{
+                scale: 1.02,
+                rotate: 0,
+                zIndex: 50,
+                boxShadow: isSpecial
+                  ? "0 0 50px rgba(212, 175, 55, 0.4)"
+                  : "0 0 30px rgba(255, 215, 0, 0.2)",
+                filter: "brightness(1.1)",
+              }}
+              transition={{
+                scale: { type: "spring", stiffness: 400, damping: 25 },
+              }}
+            >
+              {item.type === "video" ? (
+                <video
+                  src={item.src}
+                  className={`w-full h-auto block ${
+                    isSpecial ? "object-contain max-h-[80vh]" : "object-contain"
+                  }`}
+                  autoPlay
+                  loop
+                  muted
+                  playsInline
+                  onError={() => setHasError(true)}
+                />
+              ) : (
+                <img
+                  src={item.src}
+                  alt={item.filename}
+                  className={`w-full h-auto block opacity-90 hover:opacity-100 transition-opacity duration-300 ${
+                    isSpecial ? "object-contain max-h-[80vh]" : "object-contain"
+                  }`}
+                  loading="lazy"
+                  onError={(e) => {
+                    setHasError(true);
+                    e.target.style.display = "none";
+                    const isHeic = item.filename
+                      .toLowerCase()
+                      .endsWith(".heic");
+                    e.target.parentElement.innerHTML += `
+                                        <div class="flex flex-col items-center justify-center text-[10px] text-white/40 p-12 text-center bg-[#111] w-full">
+                                            <span class="text-red-400 mb-1">✕</span>
+                                            ${
+                                              isHeic
+                                                ? "HEIC Not Supported<br/>Convert to JPG"
+                                                : `File Not Found<br/>${item.filename}`
+                                            }
+                                        </div>`;
+                  }}
+                />
+              )}
+
+              {/* Special Label for Childhood Photo */}
+              {isSpecial && (
+                <div className="absolute bottom-4 left-0 w-full text-center opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none">
+                  <span className="text-gold-400 tracking-[0.3em] text-sm uppercase font-bold drop-shadow-md bg-black/50 px-3 py-1 rounded-full">
+                    {item.filename.includes("Screenshot")
+                      ? "Childhood"
+                      : "Special Moment"}
+                  </span>
+                </div>
+              )}
+            </motion.div>
+          </motion.div>
+        );
+      };
+
+      const Hero = () => {
+        const { scrollY } = useScroll();
+        const opacity = useTransform(scrollY, [0, 500], [1, 0]);
+        const scale = useTransform(scrollY, [0, 500], [1, 1.2]);
+
+        return (
+          <div className="relative h-screen w-full flex flex-col items-center justify-center overflow-hidden">
+            <motion.div
+              style={{ opacity, scale }}
+              className="absolute inset-0 z-0"
+            >
+              <video
+                src={`${BASE_PATH}a4.MOV`}
+                className="w-full h-full object-cover object-center brightness-50"
+                autoPlay
+                loop
+                muted
+                playsInline
+                onError={(e) => {
+                  // Fallback if video fails
+                  e.target.style.display = "none";
+                  e.target.parentNode.innerHTML +=
+                    '<img src="https://images.unsplash.com/photo-1534447677768-be436bb09401?auto=format&fit=crop&w=2500&q=80" class="w-full h-full object-cover object-center brightness-50" alt="Hero" />';
+                }}
+              />
+            </motion.div>
+
+            <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-[#050505] z-10" />
+
+            <motion.div
+              style={{ opacity }}
+              className="relative z-20 text-center px-4"
+            >
+              <motion.h1
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 1.5, ease: "easeOut" }}
+                className="text-6xl md:text-9xl font-light tracking-tighter serif text-transparent bg-clip-text bg-gradient-to-b from-white via-white to-white/40 mb-6 drop-shadow-2xl"
+              >
+                HAPPY 24
+              </motion.h1>
+              <motion.p
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 1.5, delay: 0.5 }}
+                className="text-xs md:text-sm tracking-[0.5em] text-gold-400 uppercase font-bold"
+              >
+                The Golden Year Collection
+              </motion.p>
+            </motion.div>
+
+            <motion.div
+              initial={{ height: 0 }}
+              animate={{ height: 100 }}
+              transition={{ duration: 1.5, delay: 1 }}
+              className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[1px] bg-gradient-to-b from-transparent to-white/50 z-20"
+            />
+          </div>
+        );
+      };
+
+      const App = () => {
+        const [hideBroken, setHideBroken] = useState(false);
+        const { scrollYProgress } = useScroll();
+
+        // 1. Find the special photos
+        // Using strict equality for known filenames, and includes for screenshot
+        const specialPhoto1 = ITEMS.find(
+          (item) => item.filename === "hbd24.PNG"
+        );
+        const specialPhoto2 = ITEMS.find((item) =>
+          item.filename.includes("Screenshot 2025-08-27")
+        );
+
+        // Filter out any undefineds if a file isn't found
+        const specialPhotos = [specialPhoto1, specialPhoto2].filter(Boolean);
+
+        // 2. Filter them out from the main list to prevent duplicates
+        const remainingItems = ITEMS.filter(
+          (item) => !specialPhotos.includes(item)
+        );
+
+        // 3. Distribute remaining items for sections
+        const total = remainingItems.length;
+        const splitIndex = Math.floor(total * 0.6); // 60% for first grid
+
+        const gridItems1 = remainingItems.slice(0, splitIndex);
+
+        const marqueeItems1 = remainingItems.slice(splitIndex, splitIndex + 10);
+        const marqueeItems2 = remainingItems.slice(
+          splitIndex + 10,
+          splitIndex + 20
+        );
+
+        const gridItems2 = remainingItems.slice(splitIndex + 20);
+
+        // --- Auto Scroll Logic ---
+        useEffect(() => {
+          let animationFrameId;
+
+          const autoScroll = () => {
+            window.scrollBy(0, 1.2);
+            animationFrameId = requestAnimationFrame(autoScroll);
+          };
+
+          animationFrameId = requestAnimationFrame(autoScroll);
+
+          return () => {
+            cancelAnimationFrame(animationFrameId);
+          };
+        }, []);
+
+        return (
+          <GalleryContext.Provider value={{ hideBroken, setHideBroken }}>
+            <div className="bg-[#050505] min-h-screen text-white/90 selection:bg-gold-500/30 selection:text-white">
+              <div className="grain-overlay" />
+              <CustomCursor />
+
+              {/* Ambient Background Glows */}
+              <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
+                <motion.div
+                  animate={{ opacity: [0.3, 0.5, 0.3], scale: [1, 1.1, 1] }}
+                  transition={{ duration: 8, repeat: Infinity }}
+                  className="absolute top-0 left-0 w-[500px] h-[500px] bg-purple-900/20 rounded-full blur-[120px] mix-blend-screen"
+                />
+                <motion.div
+                  animate={{ opacity: [0.3, 0.5, 0.3], scale: [1.1, 1, 1.1] }}
+                  transition={{ duration: 7, repeat: Infinity, delay: 1 }}
+                  className="absolute bottom-0 right-0 w-[600px] h-[600px] bg-amber-600/10 rounded-full blur-[150px] mix-blend-screen"
+                />
+              </div>
+
+              <Hero />
+
+              {/* Section 1: Masonry Grid (True Aspect Ratio) */}
+              <div className="relative z-10 max-w-[1900px] mx-auto px-4 py-20">
+                <div className="columns-2 md:columns-3 lg:columns-4 xl:columns-5 gap-6 space-y-6">
+                  {gridItems1.map((item) => (
+                    <MediaItem key={item.id} item={item} />
+                  ))}
+                </div>
+              </div>
+
+              {/* Section 2: Creative Double Marquee (Slower & No Crop) */}
+              <div className="relative z-20 py-24 my-10 bg-gradient-to-b from-[#050505] via-[#0a0a0a] to-[#050505]">
+                <div className="absolute left-0 top-1/2 -translate-y-1/2 w-full h-[1px] bg-white/10" />
+                <p className="text-center text-xs tracking-[0.5em] text-white/40 mb-10 uppercase">
+                  Celebration of Life
+                </p>
+
+                <div className="rotate-2 scale-105 origin-center">
+                  <InfiniteMarquee
+                    items={marqueeItems1}
+                    direction={-1}
+                    speed={0.4}
+                  />
+                  <div className="h-6" />
+                  <InfiniteMarquee
+                    items={marqueeItems2}
+                    direction={1}
+                    speed={0.3}
+                  />
+                </div>
+              </div>
+
+              {/* Section 3: Highlight Section (Masonry) */}
+              <div className="relative z-10 max-w-[1600px] mx-auto px-6 py-20">
+                {/* Special Photo Slots */}
+                <div className="mb-12 flex flex-col md:flex-row justify-center items-center gap-8">
+                  {specialPhotos.map((photo) => (
+                    <div key={photo.id} className="w-full max-w-xl">
+                      <MediaItem item={photo} isSpecial={true} />
+                    </div>
+                  ))}
+                </div>
+
+                <div className="columns-2 md:columns-4 gap-6 space-y-6">
+                  {gridItems2.map((item) => (
+                    <MediaItem key={item.id} item={item} />
+                  ))}
+                </div>
+              </div>
+
+              {/* Footer */}
+              <footer className="relative z-10 py-32 flex flex-col items-center justify-center text-white/30">
+                <div className="w-[1px] h-20 bg-gradient-to-b from-white/20 to-transparent mb-8" />
+                <p className="text-xs tracking-widest uppercase">Fin</p>
+              </footer>
+            </div>
+          </GalleryContext.Provider>
+        );
+      };
+
+      const root = ReactDOM.createRoot(document.getElementById("root"));
+      root.render(<App />);
+    </script>
+  </body>
+</html>
